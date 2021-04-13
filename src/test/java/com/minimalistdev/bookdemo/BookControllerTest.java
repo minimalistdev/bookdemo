@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -56,12 +57,15 @@ public class BookControllerTest {
 
     @Test
     public void get_find_price_greater_than() throws Exception {
-        bookRepository.save(Book.builder().name("Book Name").author("Chris").price(10L).build());
-        bookRepository.save(Book.builder().name("Book Name").author("Chris").price(20L).build());
+        bookRepository.save(Book.builder().name("Book Name 1").author("Chris").price(10L).build());
+        bookRepository.save(Book.builder().name("Book Name 2").author("Chris 2").price(20L).build());
 
-        mvc.perform(get("/books/filter?price[gt]=15")
+        mvc.perform(get("/books/search/findByPriceGreaterThan?price=15")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.numberOfElements", is(1)))
+                .andExpect(jsonPath("$._embedded.book", hasSize(1)))
+                .andExpect(jsonPath("$._embedded.book[0].name", is("Book Name 2")))
+                .andExpect(jsonPath("$._embedded.book[0].author", is("Chris 2")))
+                .andExpect(jsonPath("$.page.totalElements").value(1))
                 .andExpect(status().isOk());
     }
 
